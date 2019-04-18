@@ -1,19 +1,17 @@
 import time
+import smbus
 from i2cdevice import Device, Register, BitField, _int_to_bytes
 from i2cdevice.adapter import Adapter, LookupAdapter, U16ByteSwapAdapter
 
 DRV2605_ADDR = 0x5a
 
-BIT0 = 0b00000001
-BIT1 = 0b00000010
-BIT2 = 0b00000100
-BIT3 = 0b00001000
-BIT4 = 0b00010000
-BIT5 = 0b00100000
-BIT6 = 0b01000000
-BIT7 = 0b10000000
-LNIBBLE = 0b00001111
-HNIBBLE = 0b11110000
+
+class WaitTimeAdapter(Adapter):
+    def _encode(self, value):
+        return (value // 10) | 0x80
+
+    def _decode(self, value):
+        return (value & 0x7F) * 10
 
 
 class DRV2605():
@@ -62,22 +60,22 @@ class DRV2605():
             # waveform becomes a timed delay.
             # Delay time = 10 ms x waveformN
             Register('WAVEFORM_SEQUENCER', 0x04, fields=(
-                BitField('wait1', 1 << 55),
-                BitField('waveform1', 0x7F << 55),
-                BitField('wait2', 1 << 47),
-                BitField('waveform2', 0x7F << 47),
-                BitField('wait3', 1 << 39),
-                BitField('waveform3', 0x7F << 39),
-                BitField('wait4', 1 << 31),
-                BitField('waveform4', 0x7F << 31),
-                BitField('wait5', 1 << 23),
-                BitField('waveform5', 0x7F << 23),
-                BitField('wait6', 1 << 15),
-                BitField('waveform6', 0x7F << 15),
-                BitField('wait7', 1 << 7),
-                BitField('waveform7', 0x7F << 7),
-                BitField('wait8', 1 << 0),
-                BitField('waveform8', 0x7F << 0),
+                BitField('step1_wait', 0xFF << 56, adapter=WaitTimeAdapter()),
+                BitField('step1_waveform', 0xFF << 56),
+                BitField('step2_wait', 0xFF << 48, adapter=WaitTimeAdapter()),
+                BitField('step2_waveform', 0xFF << 48),
+                BitField('step3_wait', 0xFF << 40, adapter=WaitTimeAdapter()),
+                BitField('step3_waveform', 0xFF << 40),
+                BitField('step4_wait', 0xFF << 32, adapter=WaitTimeAdapter()),
+                BitField('step4_waveform', 0xFF << 32),
+                BitField('step5_wait', 0xFF << 24, adapter=WaitTimeAdapter()),
+                BitField('step5_waveform', 0xFF << 24),
+                BitField('step6_wait', 0xFF  << 16, adapter=WaitTimeAdapter()),
+                BitField('step6_waveform', 0xFF << 16),
+                BitField('step7_wait', 0xFF << 8, adapter=WaitTimeAdapter()),
+                BitField('step7_waveform', 0xFF << 8),
+                BitField('step8_wait', 0xFF << 0, adapter=WaitTimeAdapter()),
+                BitField('step8_waveform', 0xFF << 0),
             ), bit_width=8 * 8),
             Register('GO', 0x0C, fields=(
                 BitField('go', 0b00000001),
@@ -123,7 +121,7 @@ class DRV2605():
                     'ERM': 0,
                     'LRA': 1
                 })),
-                BitField('feedback_brake_factor', 0b01110000, adaptor=LookupAdapter({
+                BitField('feedback_brake_factor', 0b01110000, adapter=LookupAdapter({
                     1: 0,
                     2: 1,
                     3: 2,
@@ -131,7 +129,7 @@ class DRV2605():
                     6: 4,
                     8: 5,
                     16: 6,
-                    'disabled': 7
+                    0: 7
                 })),
                 BitField('loop_gain', 0b00001100, adapter=LookupAdapter({
                     'low': 0,
@@ -226,19 +224,62 @@ class DRV2605():
                 BitField('vbat', 0xFF),
             )),
             Register('LRA_RESONANCE', 0x22, fields=(
-                BitField('period', 0xFF)        # period (us) = period * 98.46
+                BitField('period', 0xFF),       # period (us) = period * 98.46
             ))
         ))
 
 
 if __name__ == "__main__":
-    drv2605 = DRV2605()
+    import sys
+
+    bus = smbus.SMBus(3)
+    drv2605 = DRV2605(i2c_dev=bus)
+    drv2605._drv2605.MODE.set_reset(True)
+    time.sleep(0.2)
     drv2605._drv2605.MODE.set_standby(False)
     drv2605._drv2605.LIBRARY_SELECTION.set_library('LRA')
     drv2605._drv2605.FEEDBACK_CONTROL.set_mode('LRA')
-    drv2605._drv2605.MODE.set_mode('Real-time Playback')
-    drv2605._drv2605.GO.set_go(True)
-    for x in range(0, 255):
-        drv2605._drv2605.REALTIME_PLAYBACK.set_input(x)
-        time.sleep(0.001)
-    drv2605._drv2605.GO.set_go(False)
+    # drv2605._drv2605.CONTROL1.set_startup_boost(True)
+    # drv2605._drv2605.FEEDBACK_CONTROL.set_back_emf_gain(3.75)
+
+    if 1 == 1:
+        drv2605._drv2605.FEEDBACK_CONTROL.set_loop_gain('high')
+        drv2605._drv2605.FEEDBACK_CONTROL.set_feedback_brake_factor(2)
+        drv2605._drv2605.CONTROL4.set_auto_calibration_time(1000)
+        drv2605._drv2605.CONTROL4.set_zero_crossing_detection_time(100)
+        drv2605._drv2605.CONTROL2.set_idiss_time(1)
+        drv2605._drv2605.MODE.set_mode('Auto Calibration')
+        drv2605._drv2605.GO.set_go(True)
+        while drv2605._drv2605.GO.get_go():
+            time.sleep(0.01)
+
+        time.sleep(0.5)
+
+    if len(sys.argv) > 1:
+        drv2605._drv2605.MODE.set_mode('Internal Trigger')
+        pattern = int(sys.argv[1])
+
+        print("Playing pattern: {}".format(sys.argv[1]))
+        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step1_waveform(pattern)
+        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step2_wait(100)
+        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step3_waveform(pattern)
+        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step4_wait(100)
+        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step5_waveform(pattern)
+        drv2605._drv2605.GO.set_go(True)
+        while drv2605._drv2605.GO.get_go():
+            time.sleep(0.01)
+
+    else:
+        drv2605._drv2605.MODE.set_mode('Real-time Playback')
+        drv2605._drv2605.CONTROL3.set_data_format_rtp('Unsigned')
+        drv2605._drv2605.GO.set_go(True)
+        for x in range(0, 255):
+            drv2605._drv2605.REALTIME_PLAYBACK.set_input(x)
+            print("Waveform: {}".format(x))
+            time.sleep(0.01)
+        for x in range(255, 0, -1):
+            drv2605._drv2605.REALTIME_PLAYBACK.set_input(x)
+            print("Waveform: {}".format(x))
+            time.sleep(0.01)
+
+        drv2605._drv2605.GO.set_go(False)
