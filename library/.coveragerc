@@ -1,0 +1,4 @@
+[run]
+source = drv2605
+omit =
+    .tox/*
