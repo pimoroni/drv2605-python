@@ -1,4 +1,5 @@
 import time
+import math
 import smbus
 from i2cdevice import Device, Register, BitField, _int_to_bytes
 from i2cdevice.adapter import Adapter, LookupAdapter, U16ByteSwapAdapter
@@ -12,6 +13,16 @@ class WaitTimeAdapter(Adapter):
 
     def _decode(self, value):
         return (value & 0x7F) * 10
+
+
+class WaitMillis():
+    def __init__(self, wait_time):
+        self.wait_time = wait_time
+
+
+class PlayWaveform():
+    def __init__(self, waveform):
+        self.waveform = waveform
 
 
 class DRV2605():
@@ -229,57 +240,121 @@ class DRV2605():
         ))
 
 
+    def reset(self):
+        self._drv2605.MODE.set_reset(True)
+        while self._drv2605.MODE.get_reset():
+            time.sleep(0.01)
+        drv2605._drv2605.MODE.set_standby(False)
+
+    def set_feedback_mode(self, mode='LRA'):
+        self._drv2605.FEEDBACK_CONTROL.set_mode(mode)
+
+    def set_library(self, library='LRA'):
+        self._drv2605.LIBRARY_SELECTION.set_library('LRA')
+
+    def set_mode(self, mode):
+        self._drv2605.MODE.set_mode(mode)
+
+    def auto_calibrate(self,
+                  loop_gain='high',
+                  feedback_brake_factor=2, 
+                  auto_calibration_time=1000,
+                  zero_crossing_detection_time=100,
+                  idiss_time=1):
+        mode = self._drv2605.MODE.get_mode()
+        self._drv2605.MODE.set_mode('Auto Calibration')
+        self._drv2605.FEEDBACK_CONTROL.set_loop_gain(loop_gain)
+        self._drv2605.FEEDBACK_CONTROL.set_feedback_brake_factor(feedback_brake_factor)
+        self._drv2605.CONTROL4.set_auto_calibration_time(auto_calibration_time)
+        self._drv2605.CONTROL4.set_zero_crossing_detection_time(zero_crossing_detection_time)
+        self._drv2605.CONTROL2.set_idiss_time(idiss_time)
+        self._drv2605.GO.set_go(True)
+        while self._drv2605.GO.get_go():
+            time.sleep(0.01)
+        self._drv2605.MODE.set_mode(mode)
+
+    def set_realtime_input(self, value):
+        """Set a single playback sample for realtime mode."""
+        drv2605._drv2605.REALTIME_PLAYBACK.set_input(value)
+
+    def set_realtime_data_format(self, value):
+        """Set the data format for realtime mode playback samples."""
+        drv2605._drv2605.CONTROL3.set_data_format_rtp(value)
+
+    def set_sequence(self, *sequence):
+        """Set a sequence to be played by the DRV2605.
+
+        Accepts up to 8 arguments of type PlayWaveform or WaitMillis.
+
+        """
+        seq = self._drv2605.WAVEFORM_SEQUENCER
+        for x, step in enumerate(sequence):
+            if hasattr(step, 'wait_time'):
+                getattr(seq, 'set_step{}_wait'.format(x + 1))(step.wait_time)
+            elif hasattr(step, 'waveform'):
+                getattr(seq, 'set_step{}_waveform'.format(x + 1))(step.waveform)
+
+    def go(self):
+        """Trigger the current mode."""
+        self._drv2605.GO.set_go(True)
+
+    def stop(self):
+        """Stop playback."""
+        self._drv2605.GO.set_go(False)
+
+    def busy(self):
+        """Check if DRV2605 is busy."""
+        return self._drv2605.GO.get_go()
+
+
 if __name__ == "__main__":
     import sys
 
+    enable_calibration = True
+
     bus = smbus.SMBus(3)
     drv2605 = DRV2605(i2c_dev=bus)
-    drv2605._drv2605.MODE.set_reset(True)
-    time.sleep(0.2)
-    drv2605._drv2605.MODE.set_standby(False)
-    drv2605._drv2605.LIBRARY_SELECTION.set_library('LRA')
-    drv2605._drv2605.FEEDBACK_CONTROL.set_mode('LRA')
-    # drv2605._drv2605.CONTROL1.set_startup_boost(True)
-    # drv2605._drv2605.FEEDBACK_CONTROL.set_back_emf_gain(3.75)
+    drv2605.reset()
 
-    if 1 == 1:
-        drv2605._drv2605.FEEDBACK_CONTROL.set_loop_gain('high')
-        drv2605._drv2605.FEEDBACK_CONTROL.set_feedback_brake_factor(2)
-        drv2605._drv2605.CONTROL4.set_auto_calibration_time(1000)
-        drv2605._drv2605.CONTROL4.set_zero_crossing_detection_time(100)
-        drv2605._drv2605.CONTROL2.set_idiss_time(1)
-        drv2605._drv2605.MODE.set_mode('Auto Calibration')
-        drv2605._drv2605.GO.set_go(True)
-        while drv2605._drv2605.GO.get_go():
-            time.sleep(0.01)
+    drv2605.set_feedback_mode('LRA')
+    drv2605.set_library('LRA')
 
+    if enable_calibration:
+        drv2605.auto_calibrate()
         time.sleep(0.5)
 
     if len(sys.argv) > 1:
-        drv2605._drv2605.MODE.set_mode('Internal Trigger')
+        drv2605.set_mode('Internal Trigger')
         pattern = int(sys.argv[1])
 
         print("Playing pattern: {}".format(sys.argv[1]))
-        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step1_waveform(pattern)
-        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step2_wait(100)
-        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step3_waveform(pattern)
-        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step4_wait(100)
-        drv2605._drv2605.WAVEFORM_SEQUENCER.set_step5_waveform(pattern)
-        drv2605._drv2605.GO.set_go(True)
-        while drv2605._drv2605.GO.get_go():
+
+        drv2605.set_sequence(
+            PlayWaveform(pattern),
+            WaitMillis(100),
+            PlayWaveform(pattern),
+            WaitMillis(100),
+            PlayWaveform(pattern)
+        )
+
+        drv2605.go()
+        while drv2605.busy():
             time.sleep(0.01)
 
     else:
-        drv2605._drv2605.MODE.set_mode('Real-time Playback')
-        drv2605._drv2605.CONTROL3.set_data_format_rtp('Unsigned')
-        drv2605._drv2605.GO.set_go(True)
-        for x in range(0, 255):
-            drv2605._drv2605.REALTIME_PLAYBACK.set_input(x)
-            print("Waveform: {}".format(x))
-            time.sleep(0.01)
-        for x in range(255, 0, -1):
-            drv2605._drv2605.REALTIME_PLAYBACK.set_input(x)
-            print("Waveform: {}".format(x))
-            time.sleep(0.01)
-
-        drv2605._drv2605.GO.set_go(False)
+        drv2605.set_mode('Real-time Playback')
+        drv2605.set_realtime_data_format('Unsigned')
+        drv2605.go()
+        try:
+            while True:
+                d = time.time() * 10
+                x = (math.sin(d) + 1) / 2
+                x = int(x * 255)
+                drv2605.set_realtime_input(x)
+                print("Waveform: {}".format(x))
+                time.sleep(0.01)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            drv2605.set_realtime_input(0)
+            drv2605.stop()
