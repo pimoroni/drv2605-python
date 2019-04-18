@@ -242,9 +242,10 @@ class DRV2605():
 
     def reset(self):
         self._drv2605.MODE.set_reset(True)
+        time.sleep(0.1)
         while self._drv2605.MODE.get_reset():
             time.sleep(0.01)
-        drv2605._drv2605.MODE.set_standby(False)
+        self._drv2605.MODE.set_standby(False)
 
     def set_feedback_mode(self, mode='LRA'):
         self._drv2605.FEEDBACK_CONTROL.set_mode(mode)
@@ -275,11 +276,11 @@ class DRV2605():
 
     def set_realtime_input(self, value):
         """Set a single playback sample for realtime mode."""
-        drv2605._drv2605.REALTIME_PLAYBACK.set_input(value)
+        self._drv2605.REALTIME_PLAYBACK.set_input(value)
 
     def set_realtime_data_format(self, value):
         """Set the data format for realtime mode playback samples."""
-        drv2605._drv2605.CONTROL3.set_data_format_rtp(value)
+        self._drv2605.CONTROL3.set_data_format_rtp(value)
 
     def set_sequence(self, *sequence):
         """Set a sequence to be played by the DRV2605.
