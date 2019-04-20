@@ -1,8 +1,8 @@
 import time
 import math
 import smbus
-from i2cdevice import Device, Register, BitField, _int_to_bytes
-from i2cdevice.adapter import Adapter, LookupAdapter, U16ByteSwapAdapter
+from i2cdevice import Device, Register, BitField
+from i2cdevice.adapter import Adapter, LookupAdapter
 
 DRV2605_ADDR = 0x5a
 
@@ -81,7 +81,7 @@ class DRV2605():
                 BitField('step4_waveform', 0xFF << 32),
                 BitField('step5_wait', 0xFF << 24, adapter=WaitTimeAdapter()),
                 BitField('step5_waveform', 0xFF << 24),
-                BitField('step6_wait', 0xFF  << 16, adapter=WaitTimeAdapter()),
+                BitField('step6_wait', 0xFF << 16, adapter=WaitTimeAdapter()),
                 BitField('step6_waveform', 0xFF << 16),
                 BitField('step7_wait', 0xFF << 8, adapter=WaitTimeAdapter()),
                 BitField('step7_waveform', 0xFF << 8),
@@ -239,8 +239,8 @@ class DRV2605():
             ))
         ))
 
-
     def reset(self):
+        self._drv2605.MODE.set_standby(False)
         self._drv2605.MODE.set_reset(True)
         time.sleep(0.1)
         while self._drv2605.MODE.get_reset():
@@ -257,11 +257,11 @@ class DRV2605():
         self._drv2605.MODE.set_mode(mode)
 
     def auto_calibrate(self,
-                  loop_gain='high',
-                  feedback_brake_factor=2, 
-                  auto_calibration_time=1000,
-                  zero_crossing_detection_time=100,
-                  idiss_time=1):
+                       loop_gain='high',
+                       feedback_brake_factor=2,
+                       auto_calibration_time=1000,
+                       zero_crossing_detection_time=100,
+                       idiss_time=1):
         mode = self._drv2605.MODE.get_mode()
         self._drv2605.MODE.set_mode('Auto Calibration')
         self._drv2605.FEEDBACK_CONTROL.set_loop_gain(loop_gain)
