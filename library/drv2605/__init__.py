@@ -313,7 +313,7 @@ if __name__ == "__main__":
 
     enable_calibration = True
 
-    bus = smbus.SMBus(3)
+    bus = smbus.SMBus(1)
     drv2605 = DRV2605(i2c_dev=bus)
     drv2605.reset()
 
