@@ -1,7 +1,16 @@
+#!/usr/bin/env python
 import time
 from trackball import TrackBall
 from drv2605 import DRV2605
 
+
+print("""haptic-trackball.py
+
+Add haptic feedback to the Trackball breakout.
+
+Press Ctrl+C to exit.
+
+""")
 
 trackball = TrackBall(interrupt_pin=4)
 drv2605 = DRV2605()
