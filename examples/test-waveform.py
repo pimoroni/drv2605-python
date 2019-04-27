@@ -48,7 +48,7 @@ try:
         x = (math.sin(d) + 1) / 2
         x = int(x * (132 + args.intensity))
         drv2605.set_realtime_input(x)
-        time.sleep(0.01)
+        time.sleep(0.01 / args.speed)
 except KeyboardInterrupt:
     pass
 finally:
