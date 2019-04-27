@@ -5,10 +5,19 @@ import argparse
 import time
 import math
 
+waveforms = {
+    'sine': lambda x: (math.sin(x) + 1) / 2,
+    'square': lambda x: int(x % 2),
+    'saw': lambda x: x % 1,
+    'triangle': lambda x: 1 - abs(x % 2 - 1)
+}
+
 print("""test-waveform.py - Test DRV2605 real-time waveform mode
 """)
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--type', type=str, default='sine', choices=waveforms.keys(),
+                    help='waveform to use')
 parser.add_argument('--speed', type=float, default=10,
                     help='speed of waveform mode')
 parser.add_argument('--intensity', type=int, default=122,
@@ -42,11 +51,14 @@ drv2605.set_mode('Real-time Playback')
 drv2605.set_realtime_data_format('Unsigned')
 drv2605.go()
 
+waveform = waveforms[args.type]
+
 try:
     while True:
         d = time.time() * args.speed
-        x = (math.sin(d) + 1) / 2
+        x = waveform(d)
         x = int(x * (132 + args.intensity))
+        print(x)
         drv2605.set_realtime_input(x)
         time.sleep(0.01 / args.speed)
 except KeyboardInterrupt:
