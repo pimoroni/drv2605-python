@@ -6,7 +6,6 @@ import time
 import math
 
 print("""test-pattern.py - Test a DRV2605 built-in haptic pattern
-
 """)
 
 parser = argparse.ArgumentParser()
@@ -24,8 +23,8 @@ args = parser.parse_args()
 if args.repeat not in range(1, 5):
     parser.error("Repeat should be between 1 and 4")
 
-if args.pattern not in range(0, 128):
-    parser.error("Pattern should be between 0 and 127")
+if args.pattern not in range(1, 124):
+    parser.error("Pattern should be between 1 and 123")
 
 if args.delay not in range(0, 128):
     parser.error("Delay should be between 0 and 127")
@@ -41,39 +40,26 @@ if args.calibrate:
     drv2605.auto_calibrate()
     time.sleep(0.5)
 
-if args.pattern > 0:
-    drv2605.set_mode('Internal Trigger')
+drv2605.set_mode('Internal Trigger')
 
-    print("Playing pattern: {}".format(args.pattern))
+print("""Pattern: {}
+Repeat: {} time(s)
+Delay: {}ms""".format(
+    args.pattern,
+    args.repeat,
+    args.delay
+))
 
-    sequence = []
+sequence = []
 
-    for x in range(args.repeat):
-        sequence.append(PlayWaveform(args.pattern))
-        sequence.append(WaitMillis(args.delay))
+for x in range(args.repeat):
+    sequence.append(PlayWaveform(args.pattern))
+    sequence.append(WaitMillis(args.delay))
 
-    drv2605.set_sequence(
-        *sequence
-    )
+drv2605.set_sequence(
+    *sequence
+)
 
-    drv2605.go()
-    while drv2605.busy():
-        time.sleep(0.01)
-
-else:
-    drv2605.set_mode('Real-time Playback')
-    drv2605.set_realtime_data_format('Unsigned')
-    drv2605.go()
-    try:
-        while True:
-            d = time.time() * 10
-            x = (math.sin(d) + 1) / 2
-            x = int(x * 255)
-            drv2605.set_realtime_input(x)
-            print("Waveform: {}".format(x))
-            time.sleep(0.01)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        drv2605.set_realtime_input(0)
-        drv2605.stop()
+drv2605.go()
+while drv2605.busy():
+    time.sleep(0.01)
