@@ -242,21 +242,20 @@ class DRV2605():
         ))
 
     def reset(self):
-        self._drv2605.MODE.set_standby(False)
-        self._drv2605.MODE.set_reset(True)
+        self._drv2605.set('MODE', standby=False, reset=True)
         time.sleep(0.1)
-        while self._drv2605.MODE.get_reset():
+        while self._drv2605.get('MODE').reset:
             time.sleep(0.01)
-        self._drv2605.MODE.set_standby(False)
+        self._drv2605.set('MODE', standby=False)
 
     def set_feedback_mode(self, mode='LRA'):
-        self._drv2605.FEEDBACK_CONTROL.set_mode(mode)
+        self._drv2605.set('FEEDBACK_CONTROL', mode=mode)
 
     def set_library(self, library='LRA'):
-        self._drv2605.LIBRARY_SELECTION.set_library('LRA')
+        self._drv2605.set('LIBRARY_SELECTION', library='LRA')
 
     def set_mode(self, mode):
-        self._drv2605.MODE.set_mode(mode)
+        self._drv2605.set('MODE', mode=mode)
 
     def auto_calibrate(self,
                        loop_gain='high',
@@ -264,25 +263,27 @@ class DRV2605():
                        auto_calibration_time=1000,
                        zero_crossing_detection_time=100,
                        idiss_time=1):
-        mode = self._drv2605.MODE.get_mode()
-        self._drv2605.MODE.set_mode('Auto Calibration')
-        self._drv2605.FEEDBACK_CONTROL.set_loop_gain(loop_gain)
-        self._drv2605.FEEDBACK_CONTROL.set_feedback_brake_factor(feedback_brake_factor)
-        self._drv2605.CONTROL4.set_auto_calibration_time(auto_calibration_time)
-        self._drv2605.CONTROL4.set_zero_crossing_detection_time(zero_crossing_detection_time)
-        self._drv2605.CONTROL2.set_idiss_time(idiss_time)
-        self._drv2605.GO.set_go(True)
-        while self._drv2605.GO.get_go():
+        mode = self._drv2605.get('MODE').mode
+        self._drv2605.set('MODE', mode='Auto Calibration')
+        self._drv2605.set('FEEDBACK_CONTROL',
+                          loop_gain=loop_gain,
+                          feedback_brake_factor=feedback_brake_factor)
+        self._drv2605.set('CONTROL4',
+                          auto_calibration_time=auto_calibration_time,
+                          zero_crossing_detection_time=zero_crossing_detection_time)
+        self._drv2605.set('CONTROL2', idiss_time=idiss_time)
+        self._drv2605.set('GO', go=True)
+        while self._drv2605.get('GO').go:
             time.sleep(0.01)
-        self._drv2605.MODE.set_mode(mode)
+        self._drv2605.set('MODE', mode=mode)
 
     def set_realtime_input(self, value):
         """Set a single playback sample for realtime mode."""
-        self._drv2605.REALTIME_PLAYBACK.set_input(value)
+        self._drv2605.set('REALTIME_PLAYBACK', input=value)
 
     def set_realtime_data_format(self, value):
         """Set the data format for realtime mode playback samples."""
-        self._drv2605.CONTROL3.set_data_format_rtp(value)
+        self._drv2605.set('CONTROL3', data_format_rtp=value)
 
     def set_sequence(self, *sequence):
         """Set a sequence to be played by the DRV2605.
@@ -290,24 +291,25 @@ class DRV2605():
         Accepts up to 8 arguments of type PlayWaveform or WaitMillis.
 
         """
-        seq = self._drv2605.WAVEFORM_SEQUENCER
+        settings = {}
         for x, step in enumerate(sequence):
             if hasattr(step, 'wait_time'):
-                getattr(seq, 'set_step{}_wait'.format(x + 1))(step.wait_time)
+                settings['set_step{}_wait'.format(x + 1)] = step.wait_time
             elif hasattr(step, 'waveform'):
-                getattr(seq, 'set_step{}_waveform'.format(x + 1))(step.waveform)
+                settings['set_step{}_waveform'.format(x + 1)] = step.waveform
+        self._drv2605.set('WAVEFORM_SEQUENCER', **settings)
 
     def go(self):
         """Trigger the current mode."""
-        self._drv2605.GO.set_go(True)
+        self._drv2605.set('GO', go=True)
 
     def stop(self):
         """Stop playback."""
-        self._drv2605.GO.set_go(False)
+        self._drv2605.set('GO', go=False)
 
     def busy(self):
         """Check if DRV2605 is busy."""
-        return self._drv2605.GO.get_go()
+        return self._drv2605.get('GO').go
 
 
 if __name__ == "__main__":
