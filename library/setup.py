@@ -39,7 +39,7 @@ classifiers = ['Development Status :: 4 - Beta',
 
 setup(
     name='drv2605',
-    version='0.0.1',
+    version='0.0.2',
     author='Philip Howard',
     author_email='phil@pimoroni.com',
     description="""Python library for the DRV2605 Haptic Driver""",
@@ -49,5 +49,5 @@ setup(
     url='http://www.pimoroni.com',
     classifiers=classifiers,
     packages=['drv2605'],
-    install_requires=['i2cdevice', 'smbus']
+    install_requires=['i2cdevice>=0.0.6', 'smbus']
 )

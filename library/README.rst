@@ -1,7 +1,11 @@
 DRV2605 Haptic Driver
 =====================
 
-|Build Status| |Coverage Status| |PyPi Package| |Python Versions|
+`Build Status <https://travis-ci.com/pimoroni/drv2605-python>`__
+`Coverage
+Status <https://coveralls.io/github/pimoroni/drv2605-python?branch=master>`__
+`PyPi Package <https://pypi.python.org/pypi/drv2605>`__ `Python
+Versions <https://pypi.python.org/pypi/drv2605>`__
 
 Installing
 ==========
@@ -16,11 +20,10 @@ Latest/development library from GitHub:
 -  ``cd drv2605-python``
 -  ``sudo ./install.sh``
 
-.. |Build Status| image:: https://travis-ci.com/pimoroni/drv2605-python.svg?branch=master
-   :target: https://travis-ci.com/pimoroni/drv2605-python
-.. |Coverage Status| image:: https://coveralls.io/repos/github/pimoroni/drv2605-python/badge.svg?branch=master
-   :target: https://coveralls.io/github/pimoroni/drv2605-python?branch=master
-.. |PyPi Package| image:: https://img.shields.io/pypi/v/drv2605.svg
-   :target: https://pypi.python.org/pypi/drv2605
-.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/drv2605.svg
-   :target: https://pypi.python.org/pypi/drv2605
+Vibration Patterns
+==================
+
+The DRV2605 has a library of built-in vibration patterns great for
+haptic feedback, notifications and more. For the complete list see:
+
+http://www.ti.com/document-viewer/DRV2605/datasheet/waveform-library-effects-list-slos854718
