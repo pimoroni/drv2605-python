@@ -4,7 +4,7 @@ import smbus
 from i2cdevice import Device, Register, BitField
 from i2cdevice.adapter import Adapter, LookupAdapter
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 DRV2605_ADDR = 0x5a
 

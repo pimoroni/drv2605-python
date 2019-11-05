@@ -1,3 +1,8 @@
+0.0.3
+-----
+
+* Fix set_sequence, issue #2
+
 0.0.2
 -----
 
