@@ -294,9 +294,9 @@ class DRV2605():
         settings = {}
         for x, step in enumerate(sequence):
             if hasattr(step, 'wait_time'):
-                settings['set_step{}_wait'.format(x + 1)] = step.wait_time
+                settings['step{}_wait'.format(x + 1)] = step.wait_time
             elif hasattr(step, 'waveform'):
-                settings['set_step{}_waveform'.format(x + 1)] = step.waveform
+                settings['step{}_waveform'.format(x + 1)] = step.waveform
         self._drv2605.set('WAVEFORM_SEQUENCER', **settings)
 
     def go(self):
