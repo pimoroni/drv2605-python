@@ -23,3 +23,19 @@ Latest/development library from GitHub:
 The DRV2605 has a library of built-in vibration patterns great for haptic feedback, notifications and more. For the complete list see:
 
 http://www.ti.com/document-viewer/DRV2605/datasheet/waveform-library-effects-list-slos854718
+
+# Changelog
+0.0.3
+-----
+
+* Fix set_sequence, issue #2
+
+0.0.2
+-----
+
+* Port to i2cdevice>=0.0.6 set/get API
+
+0.0.1
+-----
+
+* Initial Release

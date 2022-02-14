@@ -1,6 +1,6 @@
 import time
 import math
-import smbus
+import smbus2
 from i2cdevice import Device, Register, BitField
 from i2cdevice.adapter import Adapter, LookupAdapter
 
