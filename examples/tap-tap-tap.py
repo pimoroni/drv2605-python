@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from drv2605 import DRV2605, PlayWaveform, WaitMillis
 import time
+
+from drv2605 import DRV2605, PlayWaveform, WaitMillis
 
 print("""tap-tap-tap.py - Mimics a tap tap tap
 

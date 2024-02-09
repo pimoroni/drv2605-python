@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import time
-from trackball import TrackBall
-from drv2605 import DRV2605
 
+from trackball import TrackBall
+
+from drv2605 import DRV2605
 
 print("""haptic-trackball.py
 

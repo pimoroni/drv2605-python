@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-from drv2605 import DRV2605, PlayWaveform, WaitMillis
 import argparse
 import time
+
+from drv2605 import DRV2605, PlayWaveform, WaitMillis
 
 print("""test-pattern.py - Test a DRV2605 built-in haptic pattern
 """)

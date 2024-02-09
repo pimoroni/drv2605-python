@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from drv2605 import DRV2605
 import argparse
-import time
 import math
+import time
+
+from drv2605 import DRV2605
 
 waveforms = {
     "sine": lambda x: (math.sin(x) + 1) / 2,
