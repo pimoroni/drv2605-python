@@ -1,6 +1,5 @@
 import time
 import math
-import smbus2
 from i2cdevice import Device, Register, BitField
 from i2cdevice.adapter import Adapter, LookupAdapter
 
@@ -317,7 +316,8 @@ if __name__ == "__main__":
 
     enable_calibration = True
 
-    bus = smbus.SMBus(1)
+    import smbus2
+    bus = smbus2.SMBus(1)
     drv2605 = DRV2605(i2c_dev=bus)
     drv2605.reset()
 
