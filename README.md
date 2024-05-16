@@ -7,13 +7,15 @@
 
 # Installing
 
-Stable library from PyPi:
+If you've already set up a Python virtual environment, you can also install the stable library manually from PyPi:
 
 ```
 pip install drv2605
 ```
 
-or:
+Otherwise our install script will set one up for you.
+
+Stable library from GitHub:
 
 ```
 git clone https://github.com/pimoroni/drv2605-python
@@ -27,6 +29,12 @@ Latest/development library from GitHub:
 git clone https://github.com/pimoroni/drv2605-python
 cd drv2605-python
 ./install.sh --unstable
+```
+
+**Note** Libraries will be installed in the "pimoroni" virtual environment, you will need to activate it to run examples:
+
+```
+source ~/.virtualenvs/pimoroni/bin/activate
 ```
 
 # Vibration Patterns
