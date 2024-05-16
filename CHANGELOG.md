@@ -1,3 +1,9 @@
+1.0.0
+-----
+
+* Port to hatch/pyproject.toml
+* Bump i2cdevice to v1.0.0
+
 0.0.3
 -----
 
