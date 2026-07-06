@@ -42,4 +42,3 @@ source ~/.virtualenvs/pimoroni/bin/activate
 The DRV2605 has a library of built-in vibration patterns great for haptic feedback, notifications and more. For the complete list see:
 
 http://www.ti.com/document-viewer/DRV2605/datasheet/waveform-library-effects-list-slos854718
-
