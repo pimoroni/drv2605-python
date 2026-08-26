@@ -1,6 +1,5 @@
 import sys
-
-import mock
+from unittest import mock
 
 
 def test_setup():

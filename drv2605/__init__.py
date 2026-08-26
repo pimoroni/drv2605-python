@@ -17,17 +17,17 @@ class WaitTimeAdapter(Adapter):
         return (value & 0x7F) * 10
 
 
-class WaitMillis():
+class WaitMillis:
     def __init__(self, wait_time):
         self.wait_time = wait_time
 
 
-class PlayWaveform():
+class PlayWaveform:
     def __init__(self, waveform):
         self.waveform = waveform
 
 
-class DRV2605():
+class DRV2605:
     def __init__(self, i2c_addr=DRV2605_ADDR, i2c_dev=None):
         self._i2c_addr = i2c_addr
         self._i2c_dev = i2c_dev
@@ -294,9 +294,9 @@ class DRV2605():
         settings = {}
         for x, step in enumerate(sequence):
             if hasattr(step, 'wait_time'):
-                settings['step{}_wait'.format(x + 1)] = step.wait_time
+                settings[f'step{x + 1}_wait'] = step.wait_time
             elif hasattr(step, 'waveform'):
-                settings['step{}_waveform'.format(x + 1)] = step.waveform
+                settings[f'step{x + 1}_waveform'] = step.waveform
         self._drv2605.set('WAVEFORM_SEQUENCER', **settings)
 
     def go(self):
@@ -333,7 +333,7 @@ if __name__ == "__main__":
         drv2605.set_mode('Internal Trigger')
         pattern = int(sys.argv[1])
 
-        print("Playing pattern: {}".format(sys.argv[1]))
+        print(f"Playing pattern: {sys.argv[1]}")
 
         drv2605.set_sequence(
             PlayWaveform(pattern),
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                 x = (math.sin(d) + 1) / 2
                 x = int(x * 255)
                 drv2605.set_realtime_input(x)
-                print("Waveform: {}".format(x))
+                print(f"Waveform: {x}")
                 time.sleep(0.01)
         except KeyboardInterrupt:
             pass

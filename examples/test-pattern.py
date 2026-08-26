@@ -26,7 +26,7 @@ if args.repeat not in range(1, 5):
 if args.pattern not in range(1, 124):
     parser.error("Pattern should be between 1 and 123")
 
-if args.delay not in range(0, 128):
+if args.delay not in range(128):
     parser.error("Delay should be between 0 and 127")
 
 drv2605 = DRV2605()
@@ -42,17 +42,13 @@ if args.calibrate:
 
 drv2605.set_mode("Internal Trigger")
 
-print("""Pattern: {}
-Repeat: {} time(s)
-Delay: {}ms""".format(
-    args.pattern,
-    args.repeat,
-    args.delay
-))
+print(f"""Pattern: {args.pattern}
+Repeat: {args.repeat} time(s)
+Delay: {args.delay}ms""")
 
 sequence = []
 
-for x in range(args.repeat):
+for _x in range(args.repeat):
     sequence.append(PlayWaveform(args.pattern))
     sequence.append(WaitMillis(args.delay))
 

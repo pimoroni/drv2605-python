@@ -45,8 +45,7 @@ if args.calibrate:
     drv2605.auto_calibrate()
     time.sleep(0.5)
 
-print("Playing waveform at speed {} with intensity {}".format(
-      args.speed, args.intensity))
+print(f"Playing waveform at speed {args.speed} with intensity {args.intensity}")
 
 drv2605.set_mode("Real-time Playback")
 drv2605.set_realtime_data_format("Unsigned")
